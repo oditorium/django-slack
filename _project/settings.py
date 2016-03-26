@@ -22,6 +22,7 @@ SLACK_USERS = {
 ###################################################
 ## GENERAL SETTINGS
 import os
+import dj_database_url as dburl
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'f&pppjiw^qpup1_*02+)yeoli3-p@t(-+gwo7s&g*akgv=bfis'
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     #'django.contrib.contenttypes',
     #'django.contrib.sessions',
     #'django.contrib.messages',
-    #'django.contrib.staticfiles',
+    'django.contrib.staticfiles',
     'slack',
 ]
 
@@ -83,6 +84,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = '_project.wsgi.application'
 
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR + '/staticfiles'
 
 DATABASES = {
     'default': {

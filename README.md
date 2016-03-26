@@ -36,11 +36,7 @@ care of the SSL connection and the necessary certificates. After installing the 
 	cd django-slack
 	heroku create
 	heroku config:set HEROKU=1
-	heroku config:set DISABLE_COLLECTSTATIC=1
 	git push heroku +master
-	
-_Note: the line with `DISABLE_COLLECTSTATIC` is a workaround because the project settings
-as they are at the moment fail with collecting static files (there are none anyway)._
 
 
 ### Installing the Library
