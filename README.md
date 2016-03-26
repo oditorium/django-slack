@@ -9,8 +9,12 @@ This repo contains an entire Django project that should run out of the box, and 
 contains the Slack integration library as part of the `slack` app. It should run on 
 any server that has `Django 1.9+` and `Python 3.5+` installed. For security reasons,
 it should only be accessible via SSL, so it should be behind an SSL capable front end 
-server. For testing purposes it could alternatively use the `sslserver` Django library
-that allows running an SSL-capable test server.
+server. For testing purposes it could also use [sslserver](https://github.com/teddziuba/django-sslserver)
+that allows running an SSL-capable test server:
+
+	export SSLSERVER=1
+	export CERTS=/path/to/my/cert
+	python3 manage.py runsslserver 0.0.0.0:443 --certificate $CERTS.crt --key $CERTS.key
 
 To install on an Ubuntu server (or most other Linux servers for that matter) use the
 following commands:
