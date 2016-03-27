@@ -56,8 +56,8 @@ COPYRIGHT & LICENSE
 (c) Stefan LOESCH, oditorium 2015-16. All Rights Reserved.
 Licensed under the MIT License <https://opensource.org/licenses/MIT>.
 """
-__version__="1.5"
-__version_dt__="2015-03-26"
+__version__="1.6"
+__version_dt__="2015-03-31"
 __copyright__="Stefan LOESCH 2016"
 __license__="MIT License"
 

@@ -9,12 +9,14 @@ This repo contains an entire Django project that should run out of the box, and 
 contains the Slack integration library as part of the `slack` app. It should run on 
 any server that has `Django 1.9+` and `Python 3.5+` installed. For security reasons,
 it should only be accessible via SSL, so it should be behind an SSL capable front end 
-server. For testing purposes it could also use [sslserver](https://github.com/teddziuba/django-sslserver)
+server. For testing purposes it could also use [sslserver][sslserver]
 that allows running an SSL-capable test server:
+[sslserver]: https://github.com/teddziuba/django-sslserver
 
 	export SSLSERVER=1
 	export CERTS=/path/to/my/cert
 	python3 manage.py runsslserver 0.0.0.0:443 --certificate $CERTS.crt --key $CERTS.key
+
 
 To install on an Ubuntu server (or most other Linux servers for that matter) use the
 following commands:
@@ -119,5 +121,7 @@ Contributions welcome. Send us a pull request!
 
 The idea is to use [semantic versioning](http://semver.org/), even though initially we might make some minor
 API changes without bumping the major version number. Be warned!
+
+- **v1.6** changed `self.slack_request` to `self.request` to be consistent with Django; bugfix when running a subcommand; added `url` method to `SlackResponseBase` and module; added `positional_args` decorator; renamed `remainder` args to `posn`; added possibility to add alias'
 
 - **v1.5** Initial Release
