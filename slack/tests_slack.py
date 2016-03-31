@@ -40,8 +40,13 @@ class SlackViewExample(slack.SlackViewBase):
         """a simple echo handler (returns the remainder)"""
         parser.add_argument('--uppercase', '-u', action='count') # https://docs.python.org/3/library/argparse.html#action
         parse_obj = parser.run()
-        out = "-".join(parse_obj.remainder)
+        out = "-".join(parse_obj.posn)
         if parse_obj.uppercase: out=out.upper()
+        return slack.SlackResponseText("you said: {}".format(out))
+
+    @slack.positional_args
+    def run_echob(s, posn):
+        out = ":".join(posn)
         return slack.SlackResponseText("you said: {}".format(out))
 
     def run_show(s, parser):
@@ -61,14 +66,11 @@ class SlackViewExample(slack.SlackViewBase):
     def run_help(s, parser):
         return slack.SlackResponseText("""try the 'echo', 'show' or 'version' subcommands""")
 
-# TEST API VIEW
-from django.views.decorators.csrf import csrf_exempt
-@csrf_exempt
-@slack.slack_augment
-def test_api_view_dontuse(slackrq):
-    """view that is endpoint for the testing Slack API; should be reverse('slack_testing_api')"""
-    return SlackViewExample(slackrq).dispatch()
+SlackViewExample.alias("v", "version")
+SlackViewExample.alias("e", "echo")
 
+
+# TEST API VIEW
 test_api_view = SlackViewExample.as_view()
 
 
@@ -107,7 +109,7 @@ class SlackAPIObjectsTest(TestCase):
     ## TEST SLACK VERSION
     def test_slack_version(s):
         """ensure the version number is correct"""
-        s.assertEqual(slack.__version__, "1.5")
+        s.assertEqual(slack.__version__, "1.6")
 
 
     ####################################################################
@@ -136,6 +138,7 @@ class SlackAPIObjectsTest(TestCase):
         s.assertEqual (resp.as_json(), '{"text": "the response"}')
         s.assertEqual (resp.as_json_response().status_code, 200)
         s.assertTrue (isinstance (resp.as_json_response(), JsonResponse))
+
 
     ####################################################################
     ## TEST SLACK ATTACHMENT OBJECTS
@@ -174,6 +177,7 @@ class SlackAPIObjectsTest(TestCase):
         s.assertEqual(attach.Title, slack.Title)
         s.assertEqual(attach.Image, slack.Image)
 
+
     ####################################################################
     ## TEST SLACK RESPONSE
     def test_slack_response(s):
@@ -207,6 +211,16 @@ class SlackAPIObjectsTest(TestCase):
 
 
     ####################################################################
+    ## TEST SLACK URL
+    def test_slack_url(s):
+        """ensure the slack url is produced correctly"""
+        r=slack.SlackResponse('text')
+        s.assertEqual(r.url('https://my.server.com', "myserver"), "<https://my.server.com|myserver>")
+        s.assertEqual(r.url('https://my.server.com'), "<https://my.server.com>")
+        s.assertEqual(slack.url('https://my.server.com', "myserver"), "<https://my.server.com|myserver>")
+        s.assertEqual(slack.url('https://my.server.com'), "<https://my.server.com>")
+
+    ####################################################################
     ## TEST SLACK HANDLER BASE
     def test_slack_view_base(s):
         """testting the SlackViewBase object"""
@@ -220,19 +234,17 @@ class SlackAPIObjectsTest(TestCase):
         parser = view._parser("and remainder")
         parse_obj = parser.run()
         s.assertEqual(parse_obj.error, False)
-        s.assertEqual(parse_obj.remainder, ["and", "remainder"])
+        s.assertEqual(parse_obj.posn, ["and", "remainder"])
 
         request.text = "help"
         response = slack.SlackViewBase(request).dispatch()
         s.assertEqual(response.response_text, "help functionality is not currently implemented")
 
-        
-        
 
     ####################################################################
-    ## TEST SLACK HANDLER ECHO
-    def test_slack_handler_echo(s):
-        """testting the SlackViewExample object"""
+    ## TEST SLACK VIEW EXAMPLE
+    def test_slack_view_example(s):
+        """testing the SlackViewExample object"""
 
         request = SlackRequestDummy()
 
@@ -242,7 +254,15 @@ class SlackAPIObjectsTest(TestCase):
 
         request.text = "ECHO I say hello"
         response = SlackViewExample(request).dispatch()
-        s.assertEqual(response.response_text, "you said: I-say-hello")               
+        s.assertEqual(response.response_text, "you said: I-say-hello") 
+
+        request.text = "e I say hello"
+        response = SlackViewExample(request).dispatch()
+        s.assertEqual(response.response_text, "you said: I-say-hello") 
+
+        request.text = "E I say hello"
+        response = SlackViewExample(request).dispatch()
+        s.assertEqual(response.response_text, "you said: I-say-hello") 
 
         request.text = "echo -u I say hello"
         response = SlackViewExample(request).dispatch()
@@ -251,6 +271,10 @@ class SlackAPIObjectsTest(TestCase):
         request.text = "echo --uppercase I say hello"
         response = SlackViewExample(request).dispatch()
         s.assertEqual(response.response_text, "you said: I-SAY-HELLO")   
+
+        request.text = "echob I say hello"
+        response = SlackViewExample(request).dispatch()
+        s.assertEqual(response.response_text, "you said: I:say:hello")   
 
         request.text = "ECHOO I say hello"
         response = SlackViewExample(request).dispatch()
@@ -267,11 +291,6 @@ class SlackAPIObjectsTest(TestCase):
         request.text = "     "
         response = SlackViewExample(request).dispatch()
         s.assertEqual(response.response_text, "unknown subcommand ''; try 'help'")
-
-
-
-
-
 
 
 #########################################################################################
