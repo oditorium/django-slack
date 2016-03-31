@@ -536,8 +536,8 @@ class SlackViewBase():
         """
         params = remainder.split(' ')
         if params == ['']: params = []
-        parser.add_argument('remainder', nargs='*')
-            # collects all the arguments that have not been collected before into a list
+        parser.add_argument('posn', nargs='*')
+            # collects all positional arguments that have not been collected before into a list
             
         try:
             parse_obj = parser.parse_args(params)
@@ -551,8 +551,29 @@ class SlackViewBase():
 
 
 ##############################################################
-## DECORATOR SLACK AUGMENT 
+## POSITIONAL ARGUMENTS (decorator)
+def positional_args(func):
+    """
+    decorator that retrieves all positional arguments
 
+    USAGE
+        class MySlackView(SlackViewBase)
+
+            @positional_args
+            def run_mycommmand(s, posn)
+                if posn[0] == ...
+    """
+    def inner(s, parser, *args, **kwargs):
+        clargs = parser.run()
+        return func(s, clargs.posn, *args, **kwargs)
+    
+    if (func.__doc__ != None): inner.__doc__=func.__doc__+"\n\n[decorated by @positional_arguments]\n"
+    inner.__name__=func.__name__
+    return inner
+
+
+##############################################################
+## SLACK AUGMENT (decorator)
 def slack_augment(function):
     """
     decorator augmenting the view with slack parameters and checking access
@@ -560,6 +581,12 @@ def slack_augment(function):
     NOTE
     - access ischecked using settings.SLACK_ACCESS
     - if the called function returns a SlackResponse, the associated HttpResponse is returned
+
+    USAGE
+        @slack_augment
+        def myview(slack_request):
+            ...
+            return SlackResponse (...)
     """
 
     def wrapped(request, *args, **kwargs):
@@ -576,8 +603,7 @@ def slack_augment(function):
         if isinstance(response, SlackResponseBase): return response.as_json_response()
         return response
 
-    if (function.__doc__ != None):
-        wrapped.__doc__=function.__doc__+"\n\n[decorated by @slack_augment]\n"
+    if (function.__doc__ != None): wrapped.__doc__=function.__doc__+"\n\n[decorated by @slack_augment]\n"
     wrapped.__name__=function.__name__
     return wrapped   
 
