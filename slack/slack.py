@@ -362,17 +362,31 @@ class Attachment(AttachmentBase):
 class SlackResponseBase():
     """abstract base class for Slack response"""
 
+    ## AS DICT
     def as_dict(s):
         """returns the response as a python dict"""
         raise NotImplemented
 
+    ## AS JSON
     def as_json(s):
         """returns the response as a json string"""
         return json.dumps(s.as_dict())
 
+    ## AS JSON RESPONSE
     def as_json_response(s):
         """returns the response as a Django JsonResponse object"""
         return JsonResponse(s.as_dict(), safe=False)
+
+    ## URL
+    @staticmethod
+    def url(url, friendly=None):
+        """returns url in proper format for slack markdown"""
+        if not friendly: return "<{}>".format(url)
+        return "<{}|{}>".format(url, friendly)
+
+
+url = SlackResponseBase.url
+    # url method is being made available at module level for convenience
 
 
 ## SLACK RESPONSE TEXT
@@ -401,6 +415,8 @@ class SlackResponse(SlackResponseBase):
 
     def as_dict(s):
         return {'text': str(s.text), 'attachments': [a.as_dict() for a in s.attachments]}
+
+
 
 ###################################################################################################
 ## SLACK VIEW SECTION
@@ -439,13 +455,13 @@ class SlackViewBase():
 
     """
     def __init__(s, slack_request):
-        s.slack_request = slack_request
+        s.request = slack_request
 
     ############################################################
     ## DISPATCH
     def dispatch(s):
         """main entrance point for Slack requests"""
-        splt = re.split(r'[^a-zA-Z]', s.slack_request.slack_text, maxsplit=1)
+        splt = re.split(r'[^a-zA-Z]', s.request.slack_text, maxsplit=1)
         
         try: subcommand = splt[0]
         except: subcommand = ""
@@ -454,14 +470,12 @@ class SlackViewBase():
         except: parser = s._parser("")
         del splt
 
-        try:
-            run_subcommand = getattr(s, 'run_'+subcommand.lower())
-            return run_subcommand(parser)
-                # eg if subcommand == 'list' then we see whether there is a method `run_list`
-                # is yes, it is called, with `remainder` as argument
-        except AttributeError:
-            #raise
-            return s.unknown_command(subcommand, parser)
+        try: run_subcommand = getattr(s, 'run_'+subcommand.lower())
+        except AttributeError: return s.unknown_command(subcommand, parser)
+
+        return run_subcommand(parser)
+            # eg if subcommand == 'list' then we see whether there is a method `run_list`
+            # is yes, it is called, with `remainder` as argument
     
     @classmethod 
     def as_view(cls):
