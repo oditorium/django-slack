@@ -477,16 +477,40 @@ class SlackViewBase():
             # eg if subcommand == 'list' then we see whether there is a method `run_list`
             # is yes, it is called, with `remainder` as argument
     
+    ############################################################
+    ## AS VIEW
     @classmethod 
     def as_view(cls):
-        """returns a Django view that is based on that Slack view object"""
+        """returns a Django view that is based on that Slack view object
+
+        USAGE
+            url(r'^api$', views.MySlackView.as_view(), name='api'),
+        """
         
         @csrf_exempt
         @slack_augment
         def view(request):
             return cls(request).dispatch()
         return view
+    
+    ############################################################
+    ## AS VIEW
+    @classmethod 
+    def alias(cls, alias, original):
+        """
+        creates an alias for a `run_` method
         
+        USAGE
+            class MySlackView(SlackViewBase):
+                def run_foo(s, ...):
+                    ...
+                
+            MySlackView.alias('foo', 'bar')
+        """
+        original = 'run_'+original
+        alias = 'run_'+alias
+        setattr(cls, alias, getattr(cls, original))
+
         
     ############################################################
     ## RUN COMMANDS
@@ -551,7 +575,7 @@ class SlackViewBase():
 
 
 ##############################################################
-## POSITIONAL ARGUMENTS (decorator)
+## POSITIONAL ARGS (decorator)
 def positional_args(func):
     """
     decorator that retrieves all positional arguments
