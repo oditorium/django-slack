@@ -93,13 +93,22 @@ prefix (so `run_mycommand` would be called by the `mycommand` subcommand)
 	
 The `run_xxx` functions are being called with a parser which is essentially an instance of `argparse`,
 so all the usual methods for defining arguments apply. It has been extended with a `run` method that
-adds a final field `remainder` collecting all not-previously-parsed arguments, and runs the parser on
+adds a final field `posn` collecting all not-previously-parsed arguments, and runs the parser on
 the provided command:
 
 	parser.add_argument("-c", "--channel", action="count")
 	parse_obj = parser.run()
 		# parse_obj.channel contains the number of times the --channel / -c argument was used
-		# parse_obj.remainder contains the list of arguments after that
+		# parse_obj.posn contains the list of positional arguments at the end
+
+Slack views that only rely on positional arguments can choose to use to receive those directly
+by using the `positional_args` decorator
+
+	class MySlackView(SlackViewBase):
+
+		@positional_args
+		def run_mycommand(s, posn):
+			if posn[0] == ...
 
 The view function then assembles a Slack response, possible with attachments (see `SlackViewExample` for
 a more complete example):
