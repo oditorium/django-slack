@@ -15,9 +15,9 @@ to deal with regular http requests
 EXAMPLE
     see top of the file `tests_slack.py`
     
-SETTINGS
+SETTINGS AND KEYVALUE STORE
 
-this module requires the following settings:
+Slack access can be granted requires the following settings:
 
     # SLACK_ACCESS determines whether or not a certain Slack request is genuine; there are two ways
     # to encode this: either a team and a token is given, in which case both the token and the team ID
@@ -28,14 +28,21 @@ this module requires the following settings:
         '435uytbhkjgb487gy454w5hgb45hbgw4' : True, # token only
     }
 
-    # SLACK_USERS is a per-user permission management tool; it is not enforced at the library level,
-    # but the actual Slack views can implement restrictions based on this (note: chances are that
-    # this will change in a future version; at the moment the SlackRequest object provides some
-    # support, but this should be considered deprecated)
-    SLACK_USERS = {
-        # userid:
-        'id':      [slack.READ]
-    }
+
+Alternatively the key value store can contain the following items (the below initialisation only has to
+run once, eg from the Django shell--the key value store is held on permanent storage!)
+
+    from Slack.models import KeyValueStore as KVS
+    kvs = KVS.kvs_get("slack::token")
+    kvs['758ghnsw487ghonivnw574htgbeohjlg'] = 'T0ET1EF89'
+    kvs['435uytbhkjgb487gy454w5hgb45hbgw4'] = 'true'
+
+To remove access that had been previously granted run
+
+    from Slack.models import KeyValueStore as KVS
+    kvs = KVS.kvs_get("slack::token")
+    del kvs['758ghnsw487ghonivnw574htgbeohjlg']
+    del kvs['435uytbhkjgb487gy454w5hgb45hbgw4']
 
 INTEGRATION
 
@@ -53,11 +60,11 @@ LINKS
 
 COPYRIGHT & LICENSE
 
-(c) Stefan LOESCH, oditorium 2015-16. All Rights Reserved.
+Copyright (c) Stefan LOESCH, oditorium 2015-16. All Rights Reserved.
 Licensed under the MIT License <https://opensource.org/licenses/MIT>.
 """
-__version__="1.6"
-__version_dt__="2015-03-31"
+__version__="2.0"
+__version_dt__="2015-04-05"
 __copyright__="Stefan LOESCH 2016"
 __license__="MIT License"
 
@@ -72,6 +79,8 @@ import re
 import argparse
 import json
 from functools import reduce
+
+from .models import KeyValueStore as KVS
 
 ##############################################################################################
 ## CONSTANTS
@@ -614,15 +623,31 @@ def slack_augment(function):
     """
 
     def wrapped(request, *args, **kwargs):
+    
         SlackRequest.augment(request)
+        try: token = request.slack_token
+        except: return _Http403()
         #print ("token: {0.slack_token}".format(request))
         #print ("team id: {0.slack_tid}".format(request))
-        try:
-            teamid = settings.SLACK_ACCESS[request.slack_token]
-            if teamid != True: # True means that every team matches
-                if not  teamid == request.slack_tid:
-                    return _Http403()
-        except: return _Http403()
+        
+        kvs = KVS.kvs_get("slack::token")
+        teamid = kvs.get(token, False)
+        if teamid == "true" or teamid == "True" or teamid == "TRUE": teamid = True
+            # check whether the token is in the key value storage
+            # if yes, get team id and check whether it is 'true' -> set True (every team matches)
+        if teamid == False:
+            # teamid == False -> not in storage, so check in settings
+            try: teamid = settings.SLACK_ACCESS[token]
+            except: teamid = False
+    
+        # now we've got the teamid, see whether we need to check (ie, not True)
+        if teamid != True:
+            if not  teamid == request.slack_tid: teamid = False
+        
+        # if we could not validate token (and possibly team), deny
+        if teamid == False: return _Http403()
+        
+        # render the request using the wrapped function
         response = function(request, *args, **kwargs)
         if isinstance(response, SlackResponseBase): return response.as_json_response()
         return response

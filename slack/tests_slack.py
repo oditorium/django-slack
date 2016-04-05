@@ -11,7 +11,7 @@ from django.http import HttpResponse, JsonResponse
 
 from . import slack
 
-
+SLACK_VERSION = "2.0"
 
 #########################################################################################
 ## SUNDRY HELPER FUNCTIONS AND OBJECTS
@@ -109,7 +109,7 @@ class SlackAPIObjectsTest(TestCase):
     ## TEST SLACK VERSION
     def test_slack_version(s):
         """ensure the version number is correct"""
-        s.assertEqual(slack.__version__, "1.6")
+        s.assertEqual(slack.__version__, SLACK_VERSION)
 
 
     ####################################################################

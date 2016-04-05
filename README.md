@@ -43,41 +43,41 @@ care of the SSL connection and the necessary certificates. After installing the 
 
 ### Installing the Library
 
-In most cases you probably want to install the library into one of your own Django projects.
-The minimal installation would be to only use the library file (and probably the test files)
-
-- `slack.py`
-- `tests_slack.py`
-- `test.py`
-
-An example Slack view (call `SlackViewExample`) can be found in `tests_slack.py`, and the files
-`views.py` and `urls.py` show how it should be connected. The file `test.py` (if used at all) 
-should be adapted to the local configuration--its purpose is to ensure that all necessary settings
-are there and that the API is at the location where Slack expects it to be.
-
-Speaking about settings, the following lines need to be added to `settings.py`
-
-	SLACK_ACCESS = {
-	    'ULtA9InSFLTGpEz0EsMkVBKl': True,
-	}
-    
-	SLACK_USERS = {
-	    'U0CIOKE53U': 3,
-	}
-
-where the key(s) in `SLACK_ACCESS` must correspond to the Slack integration token(s). `SLACK_USERS`
-must be present, but it is deprecated (it works with the current permissions model that we will remove
-at one point).
-
-Alternatively you can copy the entire `slack` app and change the files as you see fit. Most likely, the
-definition of your `MySlackView` view would end up in `views.py` and would be connected in the `urls.py` as
-follows:
+The easiest way of installing the library is to copy the entire `slack` app and change the files 
+as you see fit. Most likely, the definition of your `MySlackView` view would end up in `views.py` 
+and would be connected in the `urls.py` as follows:
 
 	from .views import MySlackView
 	
 	urlpatterns = [
 	    url(r'^slack/api$', MySlackView.as_view(), name='slack_api'),
 	]
+
+Alternatively you can install library into one of your own Django project apps. The minimal installation 
+would be to only use the library files (and probably the test files)
+
+- `slack.py`
+- `keyvalue.py`
+- `tests_slack.py`
+- `test.py`
+
+The file `keyvalue.py` is a model file, so it must be integrated into a models package (see
+[here](https://github.com/oditorium/django-keyvalue) for a more detailed description, or 
+see the `slack` app here)
+
+An example Slack view (call `SlackViewExample`) can be found in `tests_slack.py`, and the files
+`views.py` and `urls.py` show how it should be connected. The file `test.py` (if used at all) 
+should be adapted to the local configuration--its purpose is to ensure that all necessary settings
+are there and that the API is at the location where Slack expects it to be.
+
+One way to enable Slack access is to add the following lines to `settings.py`
+
+	SLACK_ACCESS = {
+	    'ULtA9InSFLTGpEz0EsMkVBKl': True,
+	}
+    
+where the key(s) in `SLACK_ACCESS` must correspond to the Slack integration token(s). 
+
 
 
 ## Using the Library
@@ -130,6 +130,8 @@ Contributions welcome. Send us a pull request!
 
 The idea is to use [semantic versioning](http://semver.org/), even though initially we might make some minor
 API changes without bumping the major version number. Be warned!
+
+- **v2.0** integrated the key value storage
 
 - **v1.6** changed `self.slack_request` to `self.request` to be consistent with Django; bugfix when running a subcommand; added `url` method to `SlackResponseBase` and module; added `positional_args` decorator; renamed `remainder` args to `posn`; added possibility to add alias'
 

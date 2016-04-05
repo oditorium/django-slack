@@ -11,12 +11,6 @@ SLACK_ACCESS = {
     # exist in the above array, lest access will be denied)
     'ULtA9InSFLTGpEz0EsMkVBKl': True,
 }
-    
-SLACK_USERS = {
-    # that is currently needed for the code to run, but it is deprecated
-    # the whole access control mechanism is being reviewed
-    'U0CIOKE53U': 3,
-}
 
 
 ###################################################
