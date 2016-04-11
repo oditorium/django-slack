@@ -9,9 +9,11 @@ from django.conf import settings
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.http import HttpResponse, JsonResponse
 
+import json
+
 from . import slack
 
-SLACK_VERSION = "2.0"
+SLACK_VERSION = "2.1"
 
 #########################################################################################
 ## SUNDRY HELPER FUNCTIONS AND OBJECTS
@@ -135,10 +137,17 @@ class SlackAPIObjectsTest(TestCase):
         """testing the SlackResponseText object"""
         resp = slack.SlackResponseText("the response")
         s.assertEqual (resp.as_dict()['text'], "the response")
-        s.assertEqual (resp.as_json(), '{"text": "the response"}')
+        s.assertEqual (resp.as_dict()['response_type'], "ephemeral")
+        s.assertEqual (json.loads(resp.as_json()), resp.as_dict())
         s.assertEqual (resp.as_json_response().status_code, 200)
         s.assertTrue (isinstance (resp.as_json_response(), JsonResponse))
 
+        resp = slack.SlackResponseText("the response", in_channel=True)
+        s.assertEqual (resp.as_dict()['text'], "the response")
+        s.assertEqual (resp.as_dict()['response_type'], "in_channel")
+        s.assertEqual (json.loads(resp.as_json()), resp.as_dict())
+        s.assertEqual (resp.as_json_response().status_code, 200)
+        s.assertTrue (isinstance (resp.as_json_response(), JsonResponse))
 
     ####################################################################
     ## TEST SLACK ATTACHMENT OBJECTS
@@ -186,24 +195,24 @@ class SlackAPIObjectsTest(TestCase):
         att2=slack.Attachment('Attachment 2')
         
         resp=slack.SlackResponse('text')
-        s.assertEqual(resp.as_dict(), {'text': 'text', 'attachments': []})
+        s.assertEqual(resp.as_dict(), {'text': 'text', 'response_type': 'ephemeral', 'attachments': []})
 
         resp=slack.SlackResponse('text', att1)
-        s.assertEqual(resp.as_dict(), {'text': 'text', 'attachments': [{'fallback': 'Attachment 1'}]})
+        s.assertEqual(resp.as_dict(), {'text': 'text', 'response_type': 'ephemeral', 'attachments': [{'fallback': 'Attachment 1'}]})
         
         resp=slack.SlackResponse('text', [att1])
-        s.assertEqual(resp.as_dict(), {'text': 'text', 'attachments': [{'fallback': 'Attachment 1'}]})
+        s.assertEqual(resp.as_dict(), {'text': 'text', 'response_type': 'ephemeral', 'attachments': [{'fallback': 'Attachment 1'}]})
 
         resp=slack.SlackResponse('text', [att1,att2])
         s.assertEqual(resp.as_dict()['attachments'][1], {'fallback': 'Attachment 2'})
 
         resp=slack.SlackResponse('text')
         resp.add(att1)
-        s.assertEqual(resp.as_dict(), {'text': 'text', 'attachments': [{'fallback': 'Attachment 1'}]})
+        s.assertEqual(resp.as_dict(), {'text': 'text', 'response_type': 'ephemeral', 'attachments': [{'fallback': 'Attachment 1'}]})
 
         resp=slack.SlackResponse('text')
         resp.add([att1])
-        s.assertEqual(resp.as_dict(), {'text': 'text', 'attachments': [{'fallback': 'Attachment 1'}]})
+        s.assertEqual(resp.as_dict(), {'text': 'text', 'response_type': 'ephemeral', 'attachments': [{'fallback': 'Attachment 1'}]})
 
         resp=slack.SlackResponse('text')
         resp.add([att1,att2])
@@ -316,6 +325,9 @@ class SlackAPITest(TestCase):
     ####################################################################
     ## TEST URL DEFINED
     def test_url_defined(s):
+        try: 
+            if settings.SLACK_IGNORE_MISSING_URL_FOR_TESTS: return
+        except: pass
         if not s.url: print("""
 {0}
 the Slack API URL for testing has not been defined, so a number of the tests wont run!
@@ -329,6 +341,7 @@ in order to make it work, please insert eg the following code into a suitable `u
     ]
 {0}
 """.format("+"*100))
+        # if this assertion fails this means that the URL has not been defined
         s.assertTrue(s.url != None)
 
         
@@ -418,4 +431,3 @@ in order to make it work, please insert eg the following code into a suitable `u
 
 
 
-    

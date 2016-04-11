@@ -113,7 +113,7 @@ by using the `positional_args` decorator
 The view function then assembles a Slack response, possible with attachments (see `SlackViewExample` for
 a more complete example):
 
-	response = SlackResponse("that's the text before the attachment")
+	response = SlackResponse("that's the text before the attachment", in_channel=True)
 	attachment = slack.Attachment("that's the attachment text")
 	attachment.add(  att.Image("/path/to/image.jpg", "/path/to/thumb.jpg")  )
 	response.add(attachment)
@@ -130,6 +130,9 @@ Contributions welcome. Send us a pull request!
 
 The idea is to use [semantic versioning](http://semver.org/), even though initially we might make some minor
 API changes without bumping the major version number. Be warned!
+
+- **v2.1** `SlackResponse` objects now take an `in_channel` argument (and can hence post into the channel as
+well as opposed to only to the user in question)
 
 - **v2.0** integrated the key value storage
 

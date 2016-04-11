@@ -63,8 +63,8 @@ COPYRIGHT & LICENSE
 Copyright (c) Stefan LOESCH, oditorium 2015-16. All Rights Reserved.
 Licensed under the MIT License <https://opensource.org/licenses/MIT>.
 """
-__version__="2.0"
-__version_dt__="2015-04-05"
+__version__="2.1"
+__version_dt__="2015-04-11"
 __copyright__="Stefan LOESCH 2016"
 __license__="MIT License"
 
@@ -369,12 +369,20 @@ class Attachment(AttachmentBase):
 
 ## SLACK RESPONSE BASE
 class SlackResponseBase():
-    """abstract base class for Slack response"""
+    """base class for Slack response
+
+    NOTE
+    - constructor takes one parameter, `in_channel`; if this one is False (default), only the
+        user in question sees the response; otherwise it is shown in the channel
+    """
+    def __init__(s, in_channel=None):
+        if in_channel==None: in_channel=False
+        s.in_channel = in_channel
 
     ## AS DICT
     def as_dict(s):
         """returns the response as a python dict"""
-        raise NotImplemented
+        return {'response_type': "in_channel" if s.in_channel else "ephemeral"}
 
     ## AS JSON
     def as_json(s):
@@ -401,18 +409,21 @@ url = SlackResponseBase.url
 ## SLACK RESPONSE TEXT
 class SlackResponseText(SlackResponseBase):
     """implements a text-only Slack response"""
-    def __init__(s, response_text):
+    def __init__(s, response_text, in_channel=None):
+        super().__init__(in_channel)
         s.response_text = response_text
 
     def as_dict(s):
-        return {'text': str(s.response_text)}
+        dct = super().as_dict()
+        dct['text'] = str(s.response_text)
+        return dct
 
 
 ## SLACK RESPONSE
-class SlackResponse(SlackResponseBase):
+class SlackResponse(SlackResponseText):
     """implements a Slack response with text and attachment(s)"""
-    def __init__(s, text, attachments=None):
-        s.text = text
+    def __init__(s, text, attachments=None, in_channel=None):
+        super().__init__(text, in_channel)
         if attachments == None: attachments = []
         if isinstance(attachments, Attachment): attachments = [attachments]
         s.attachments = attachments
@@ -423,8 +434,9 @@ class SlackResponse(SlackResponseBase):
         s.attachments.extend(attachments)
 
     def as_dict(s):
-        return {'text': str(s.text), 'attachments': [a.as_dict() for a in s.attachments]}
-
+        dct = super().as_dict()
+        dct['attachments'] = [a.as_dict() for a in s.attachments]
+        return dct
 
 
 ###################################################################################################
@@ -503,7 +515,7 @@ class SlackViewBase():
         return view
     
     ############################################################
-    ## AS VIEW
+    ## ALIAS
     @classmethod 
     def alias(cls, alias, original):
         """
