@@ -13,7 +13,7 @@ import json
 
 from . import slack
 
-SLACK_VERSION = "2.1"
+SLACK_VERSION = "2.2"
 
 #########################################################################################
 ## SUNDRY HELPER FUNCTIONS AND OBJECTS

@@ -131,6 +131,8 @@ Contributions welcome. Send us a pull request!
 The idea is to use [semantic versioning](http://semver.org/), even though initially we might make some minor
 API changes without bumping the major version number. Be warned!
 
+- **v2.2** simplified `SlackResponse` objects structure (eliminated `SlackResponseBase`)
+
 - **v2.1** `SlackResponse` objects now take an `in_channel` argument (and can hence post into the channel as
 well as opposed to only to the user in question)
 
