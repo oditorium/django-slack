@@ -296,14 +296,14 @@ class SlackRequest(SlackRequestMixin, WSGIRequest):
 ## SLACK ATTACHMENT COMPONENTS (for response attachments)
 
 ## BASE
-class AttachmentBase():
+class AttachmentComponent():
     """abstract base class for an attachment component"""
     def as_dict(s):
         """returns the component items as dict"""
         raise NotImplemented
 
 ## TEXT
-class Text(AttachmentBase):
+class Text(AttachmentComponent):
     """Slack attachment component: text"""
     def __init__(s, text, pretext=None):
         s.text = text
@@ -313,7 +313,7 @@ class Text(AttachmentBase):
         return {"text": s.text, "pretext": s.pretext}
 
 ## AUTHOR
-class Author(AttachmentBase):
+class Author(AttachmentComponent):
     """Slack attachment component: author"""
     def __init__(s, name, link, icon):
         s.name = name
@@ -323,7 +323,7 @@ class Author(AttachmentBase):
         return {"author_name": s.name, "author_link": s.link,"author_icon": s.icon,}
 
 ## TITLE
-class Title(AttachmentBase):
+class Title(AttachmentComponent):
     """Slack attachment component: title"""
     def __init__(s, title, link):
         s.title = title
@@ -332,10 +332,11 @@ class Title(AttachmentBase):
         return {"title": s.title, "title_link": s.link}
 
 ## IMAGE
-class Image(AttachmentBase):
+class Image(AttachmentComponent):
     """Slack attachment component: image"""
-    def __init__(s, image, thumb):
+    def __init__(s, image, thumb=None):
         s.image = image
+        if thumb == None: thumb = image
         s.thumb = thumb
     def as_dict(s):
         return {"image_url": s.image, "thumb_url": s.thumb}
@@ -343,12 +344,20 @@ class Image(AttachmentBase):
 
 ##############################################################################################
 ## SLACK ATTACHMENT
-class Attachment(AttachmentBase):
-    """represents a single Slack attachment, made up from components"""
-    def __init__(s, fallback, components=None):
+class Attachment():
+    """
+    represents a single Slack attachment, made up from components
+    
+    NOTES
+    - the `components` argument of the constructor can either be a single component, or a list
+        of components
+    """
+    def __init__(s, fallback=None, components=None):
+        if fallback==None: fallback=""
         s.fallback = fallback
         if components == None: components = []
-        s.components = components
+        s.components = []
+        s.add(components)
 
     Text = Text
     Author = Author
@@ -357,8 +366,8 @@ class Attachment(AttachmentBase):
 
     def add(s, components):
         """appends one or more components"""
-        if isinstance(components, AttachmentBase): components = [components]
-        s.components.extend(components)
+        if isinstance(components, AttachmentComponent): components = [components]
+        s.components += components
 
     def as_dict(s):
         thedict = {'fallback': s.fallback}
