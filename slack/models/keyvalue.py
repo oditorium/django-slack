@@ -5,15 +5,15 @@ USAGE
     see the docstring of KeyValueStore
     
     
-Copyright (c) Stefan LOESCH, oditorium 2016. All Rights Reserved.
-Licensed under the MIT License <https://opensource.org/licenses/MIT>.
+Copyright (c) Stefan LOESCH, oditorium 2016. All rights reserved.
+Licensed under the Mozilla Public License, v. 2.0 <https://mozilla.org/MPL/2.0/>
 
 based on https://djangosnippets.org/snippets/2451/ by Morgul
 """
 __version__ = "2.0"
 __version_dt__ = "2016-04-04"
 __copyright__ = "Stefan LOESCH, oditorium 2016"
-__license__ = "MIT"
+__license__ = "MPL v2.0"
 
 from django.db import models
 from itertools import chain

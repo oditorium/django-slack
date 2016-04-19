@@ -8,8 +8,8 @@ works with absolute URLs
 
 The main URL is defined in `SlackInstallationTest.SLACK_URL`
 
-(c) Stefan LOESCH, oditorium 2016. All Rights Reserved.
-Licensed under the MIT License <https://opensource.org/licenses/MIT>.
+Copyright (c) Stefan LOESCH, oditorium 2016. All rights reserved.
+Licensed under the Mozilla Public License, v. 2.0 <https://mozilla.org/MPL/2.0/>
 """
 from django.test import TestCase
 from django.conf import settings

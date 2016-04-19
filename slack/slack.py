@@ -60,13 +60,14 @@ LINKS
 
 COPYRIGHT & LICENSE
 
-Copyright (c) Stefan LOESCH, oditorium 2015-16. All Rights Reserved.
-Licensed under the MIT License <https://opensource.org/licenses/MIT>.
+Copyright (c) Stefan LOESCH, oditorium 2016. All rights reserved.
+Licensed under the Mozilla Public License, v. 2.0 <https://mozilla.org/MPL/2.0/>
+
 """
 __version__="2.2"
 __version_dt__="2015-04-11"
 __copyright__="Stefan LOESCH 2016"
-__license__="MIT License"
+__license__="MPL v2.0"
 
 
 from django.conf import settings
